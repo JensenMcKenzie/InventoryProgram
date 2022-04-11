@@ -21,6 +21,7 @@ Algorithm/Plan:
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <limits>
 
 using namespace std;
 
@@ -52,31 +53,20 @@ struct item{
 int main() {
     int size = 0;
     const string filename = "inventory.bin";
-    ofstream data_file(filename, ios::binary | ios::out);
-    if (!data_file) {
+    ofstream output_file(filename, ios::binary | ios::out);
+    ifstream input_file(filename, ios::binary | ios::in);
+    if (!input_file) {
         cout << "Error locating file.";
         exit(1);
     }
-    //item i("x", 10, 12,14, "1.1.1");
-    //i.dateAdded = "y";
-    //i.print();
-    //data_file.write(reinterpret_cast <char *>(&i), sizeof(item));
-    //data_file.close();
-    fstream output(filename, ios::binary | ios::in);
-    if (!output){
-        cout << "Error locating file.";
-        exit(1);
-    }
-    //item g;
-    //output.read(reinterpret_cast <char *>(&g),sizeof (item));
-    //g.print();
-    //output.close();
-    int choice = 0;
-    while (true){
+    output_file.close();
+    input_file.close();
+    char choice = 0;
+    while (true) {
         cout << "Enter a choice:";
         cin >> choice;
-        switch (choice){
-            case 1 : {
+        switch(choice) {
+            case '1': {
                 cout << "Adding a new record to the file.\nEnter the item's description:";
                 string description, date;
                 int quantity;
@@ -92,53 +82,45 @@ int main() {
                 cout << "Enter the date added:";
                 cin >> date;
                 item l(description, quantity, wholesale, retail, date);
-                int y = 5;
-                data_file.write(reinterpret_cast <char *>(&y), sizeof(int));
-                int temp;
-                output.read(reinterpret_cast <char *>(&temp), sizeof(int));
-                cout << temp;
-
-                data_file.write(reinterpret_cast <char *>(&l), sizeof(item));
-                cout << "Item created and stored successfully." << endl << endl;
-                item g;
-                output.read(reinterpret_cast <char *>(&g), sizeof(item));
-                g.print();
                 size++;
+                ofstream output_file(filename, ios::binary | ios::out);
+                output_file.write((char *) &l, sizeof(l));
+                output_file.close();
                 continue;
             }
-            case 2 :
-                size = 3;
-                if (size == 0){
-                    cout << "Displaying a record from the file.\nThere are currently no items in the inventory." << endl;
+            case '2': {
+                if (size == 0) {
+                    cout << "Displaying a record from the file.\nThere are currently no items in the inventory."
+                         << endl;
                     continue;
                 }
                 int choice;
-                cout << "Displaying a record from the file.\nThe current file size is " << size << " items.\nPlease enter a number to display:";
+                cout << "Displaying a record from the file.\nThe current file size is " << size
+                     << " items.\nPlease enter a number to display:";
                 cin >> choice;
-                if (choice < 0 || choice > size){
+                if (choice < 0 || choice > size) {
                     cout << "Incorrect choice for item, please try again." << endl;
                     continue;
-                }else{
-                    for (int i = 0; i < size; i++){
-                        item x;
-                        output.read(reinterpret_cast <char *>(&x), sizeof(item));
-                        x.print();
-                        if (choice == i){
-                            cout << 's';
-                            x.print();
-                        }
-                    }
+                } else {
+                    item master[size];
+                    ifstream input_file(filename, ios::binary | ios::in);
+                    input_file.read((char *) &master, sizeof(master));
+                    master[choice-1].print();
+                    input_file.close();
                 }
                 continue;
-            case 3 :
+            }
+            case '3':
                 cout << "3";
                 continue;
-            case 4 :
+            case '4':
                 cout << "Exiting program.";
                 exit(1);
-                continue;
             default:
-                cout << "Incorrect selection, please try again.";
+                cout << "Incorrect selection, please try again." << endl;
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                break;
         }
     }
 }
+
